@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven3'
-        jdk 'JDK17'
+        maven 'Maven'      // Must match Jenkins Global Tool Configuration
+        jdk 'JDK17'        // Must match Jenkins JDK name
     }
 
     environment {
@@ -12,14 +12,27 @@ pipeline {
 
     stages {
 
-        stage('Run Tests') {
+        stage('Checkout Code') {
             steps {
-                bat 'cd C:\\Users\\Manish\\eclipse-workspace\\SeleniumAutomation && mvn clean test -Dbrowser=%BROWSER%'
+                git branch: 'main', url: 'https://github.com/Manishspatil24992/SeleniumAutomation.git'
+            }
+        }
+
+        stage('Build & Run Tests') {
+            steps {
+                bat 'mvn clean test -Dbrowser=%BROWSER%'
+            }
+        }
+
+        stage('Post Build - Reports') {
+            steps {
+                junit '**/target/surefire-reports/*.xml'
             }
         }
     }
 
     post {
+
         always {
             echo 'Execution Completed'
         }
@@ -27,6 +40,12 @@ pipeline {
         success {
             echo 'Build SUCCESS'
         }
+
+        failure {
+            echo 'Build FAILED'
+        }
+    }
+}
 
         failure {
             echo 'Build FAILED'
